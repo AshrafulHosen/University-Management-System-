@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create Account | UniManage</title>
+
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <div class="login-card" style="max-width: 480px;">
+
+        <div class="logo">
+            <h1>UniManage</h1>
+            <p>University Management System</p>
+        </div>
+
+        <div class="welcome">
+            <h2>Create New Account</h2>
+            <p>Register as a Teacher or Student to access your portal.</p>
+        </div>
+
+        <div id="registerAlert" class="alert error" style="display: none;"></div>
+
+        <form id="registerForm">
+
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input
+                        type="text"
+                        id="name"
+                        placeholder="e.g. John Doe"
+                        required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input
+                        type="email"
+                        id="email"
+                        placeholder="e.g. john@unimanage.edu"
+                        required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Register As</label>
+                <select id="role" style="width: 100%; padding: 13px 14px; border: 1px solid #dce1ec; border-radius: 8px; font-size: 14px; outline: none; background: white;" required>
+                    <option value="STUDENT" selected>Student</option>
+                    <option value="TEACHER">Teacher</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="studentNumberGroup">
+                <label for="studentNumber">Student ID / Number</label>
+                <input
+                        type="text"
+                        id="studentNumber"
+                        placeholder="e.g. STU-2026-101">
+            </div>
+
+            <div class="form-group">
+                <label for="department">Department</label>
+                <input
+                        type="text"
+                        id="department"
+                        placeholder="e.g. Computer Science"
+                        required>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input
+                        type="text"
+                        id="username"
+                        placeholder="Choose a unique username"
+                        required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                        type="password"
+                        id="password"
+                        placeholder="Choose a secure password"
+                        required>
+            </div>
+
+            <button type="submit" class="login-button" id="submitBtn">
+                Create Account
+            </button>
+
+        </form>
+
+        <div class="login-footer">
+            <p>Already have an account? <a th:href="@{/login}" style="color: #2563eb; text-decoration: none; font-weight: bold;">Sign In here</a></p>
+            <span>&copy; 2026 UniManage. All rights reserved.</span>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    const roleSelect = document.getElementById("role");
+    const studentNumberGroup = document.getElementById("studentNumberGroup");
+    const registerForm = document.getElementById("registerForm");
+    const registerAlert = document.getElementById("registerAlert");
+
+    // Toggle student number field when role changes
+    roleSelect.addEventListener("change", () => {
+        if (roleSelect.value === "STUDENT") {
+            studentNumberGroup.style.display = "block";
+            document.getElementById("studentNumber").required = true;
+        } else {
+            studentNumberGroup.style.display = "none";
+            document.getElementById("studentNumber").required = false;
+        }
+    });
+
+    registerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        registerAlert.style.display = "none";
+
+        const payload = {
+            name: document.getElementById("name").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            role: roleSelect.value,
+            department: document.getElementById("department").value.trim(),
+            studentNumber: roleSelect.value === "STUDENT" ? document.getElementById("studentNumber").value.trim() : null,
+            username: document.getElementById("username").value.trim(),
+            password: document.getElementById("password").value.trim()
+        };
+
+        const submitBtn = document.getElementById("submitBtn");
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Creating Account...";
+
+        try {
+            const res = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                let errorMsg = "Account registration failed.";
+                try {
+                    const errData = await res.json();
+                    if (errData && errData.message) {
+                        errorMsg = errData.message;
+                    }
+                } catch (_) {}
+                throw new Error(errorMsg);
+            }
+
+            // Successfully registered -> redirect to login with query param
+            window.location.href = "/login?registered";
+
+        } catch (err) {
+            registerAlert.textContent = err.message;
+            registerAlert.style.display = "block";
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Create Account";
+        }
+    });
+</script>
+
+</body>
+</html>
+
