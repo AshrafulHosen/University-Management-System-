@@ -69,8 +69,7 @@ class UniversityServiceUnitTests {
         Admin result = adminService.createAdmin(admin);
 
         assertNotNull(result);
-        // INTENTIONAL FAILURE FOR VERIFICATION: Expected "Wrong Name" instead of "Super Admin"
-        assertEquals("Wrong Name To Test GitHub Actions Failure", result.getName());
+        assertEquals("Super Admin", result.getName());
         assertEquals("admin@unimanage.edu", result.getEmail());
         verify(adminRepository, times(1)).save(admin);
     }
